@@ -1,0 +1,16 @@
+{
+  "name": "rinha-backend-2024",
+  "version": "1.0.0",
+  "description": "Projeto em nodejs para rinha de backend 2024",
+  "main": "main.js",
+  "repository": "https://github.com/andersonef/rinha-backend-2024-nodejs-1",
+  "author": "Anderson N. Silva",
+  "license": "MIT",
+  "private": false,
+  "dependencies": {
+    "sqlite3": "^5.1.7"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.3"
+  }
+}

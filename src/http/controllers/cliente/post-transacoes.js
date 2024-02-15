@@ -1,5 +1,12 @@
 const validar_transacao = require('../../../validators/transacao-validator')
 const db = require('../../../database/repository')
+const Redis = require('ioredis')
+
+const redis = new Redis({
+    host: process.env.REDIS_HOST || 'localhost',
+    port: process.env.REDIS_PORT || 6379
+
+})
 
 module.exports = async function postTransacoes(req, res) {
     const { cliente_id } = req
@@ -17,6 +24,10 @@ module.exports = async function postTransacoes(req, res) {
                 descricao
             ]
         )
+        let saldo_cache = await redis.get(`saldo:${cliente_id}`)
+        saldo_cache = JSON.parse(saldo_cache)
+        saldo_cache.saldo = saldo + (tipo === 'c' ? valor : -valor)
+        await redis.set(`saldo:${cliente_id}`, JSON.stringify(saldo_cache))
 
         res.end(JSON.stringify({
             limite,

@@ -4,7 +4,8 @@ services:
   api01: &api
     # Lembre-se de que seu serviço HTTP deve estar hospedado num repositório
     # publicamente acessível! Ex.: hub.docker.com
-    image: andersonef/rinha-node-2024:latest
+    #image: andersonef/rinha-node-2024:latest
+    build: .
     hostname: api01
     environment:
       - DB_HOST=db
@@ -13,6 +14,8 @@ services:
       - DB_USER=postgres
       - DB_PASSWORD=postgres
       - MAX_CONNECTION_POOL=20
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
     
     # Não é necessário expor qualquer porta além da porta do load balancer,
     # mas é comum as pessoas o fazerem para testarem suas APIs e conectarem
@@ -21,6 +24,7 @@ services:
       - "8081:9999"
     depends_on:
       - db
+      - redis
     deploy:
       resources:
         limits:
@@ -32,7 +36,14 @@ services:
     <<: *api 
     hostname: api02
     environment:
-      - DB_HOSTNAME=db
+      - DB_HOST=db
+      - DB_PORT=5432
+      - DB_NAME=rinha
+      - DB_USER=postgres
+      - DB_PASSWORD=postgres
+      - MAX_CONNECTION_POOL=20
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
     ports:
       - "8082:9999"
 
@@ -42,8 +53,6 @@ services:
       - POSTGRES_DB=rinha
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=postgres
-      - REDIS_HOST=redis
-      - REDIS_PORT=6379
     deploy:
       resources:
         limits:

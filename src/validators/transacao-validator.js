@@ -32,6 +32,7 @@ module.exports = async function transacaoValidator(cliente_id, valor, tipo) {
         throw 'Saldo insuficiente'
     }
     saldo_cache.saldo -= valor
+    await redis.set(`saldo:${cliente_id}`, JSON.stringify(saldo_cache))
 
     return {
         limite: saldo_cache.limite,

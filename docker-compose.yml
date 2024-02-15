@@ -42,11 +42,21 @@ services:
       - POSTGRES_DB=rinha
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=postgres
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
     deploy:
       resources:
         limits:
           cpus: "0.4"
-          memory: "100MB"
+          memory: "150MB"
+
+  redis:
+    image: redis:latest
+    deploy:
+      resources:
+        limits:
+          cpus: "0.2"
+          memory: "20MB"
  
   nginx:
     image: nginx:latest
@@ -62,7 +72,7 @@ services:
       resources:
         limits:
           cpus: "0.17"
-          memory: "10MB"
+          memory: "200MB"
 
 # O uso do modo `bridge` deve ser adequado à carga que será usada no teste.
 # A edição anterior se beneficiou do modo host pois o volume de requisições

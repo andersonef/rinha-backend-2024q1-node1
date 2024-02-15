@@ -1,15 +1,14 @@
 const CACHE_SALDOS = []
+const db = require('../database/repository')
 
-module.exports = async function transacaoValidator(db, cliente_id, valor, tipo) {
+module.exports = async function transacaoValidator(cliente_id, valor, tipo) {
     let saldo_cache = CACHE_SALDOS.find(saldo => saldo.cliente_id === cliente_id)
     if (!saldo_cache) {
-        saldo_cache = await new Promise(
-            (resolve, reject) => db.get(
-                'select * from clientes where id = ?',
-                [cliente_id],
-                (err, row) => (err) ? reject('Cliente não encontrado') : resolve(row)
-            )
+        saldo_cache = await db.query(
+            'select * from clientes where id = $1',
+            [cliente_id]
         )
+        saldo_cache = saldo_cache.rows[0]
         CACHE_SALDOS.push(saldo_cache)
     }
 

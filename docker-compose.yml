@@ -7,15 +7,20 @@ services:
     image: andersonef/rinha-node-2024:latest
     hostname: api01
     environment:
-      - DB_HOSTNAME=db
+      - DB_HOST=db
+      - DB_PORT=5432
+      - DB_NAME=rinha
+      - DB_USER=postgres
+      - DB_PASSWORD=postgres
+      - MAX_CONNECTION_POOL=20
     
     # Não é necessário expor qualquer porta além da porta do load balancer,
     # mas é comum as pessoas o fazerem para testarem suas APIs e conectarem
     # ao banco de dados na fase de desenvolvimento.
     ports:
       - "8081:9999"
-    volumes:
-      - ./db.sqlite3:/var/app/db.sqlite3
+    depends_on:
+      - db
     deploy:
       resources:
         limits:
@@ -30,6 +35,18 @@ services:
       - DB_HOSTNAME=db
     ports:
       - "8082:9999"
+
+  db:
+    image: postgres:latest
+    environment:
+      - POSTGRES_DB=rinha
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    deploy:
+      resources:
+        limits:
+          cpus: "0.4"
+          memory: "100MB"
  
   nginx:
     image: nginx:latest

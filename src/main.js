@@ -1,9 +1,7 @@
 const http = require('node:http')
 const startDb = require('./start-db')
 
-const sqlite3 = require('sqlite3').verbose()
-const db = new sqlite3.Database('./db.sqlite3', async (err) => err ? console.log(err) : await startDb(db))
-
+startDb()
 http.createServer(async (req, res) => {
   try {
     req.raw_body = ''
@@ -11,9 +9,13 @@ http.createServer(async (req, res) => {
       req.raw_body += chunk.toString()
     })
     req.on('end', async () => {
-      req.body = JSON.parse(req.raw_body || '{}')
+      try {
+        req.body = JSON.parse(req.raw_body || '{}')
+      } catch (e) {
+        req.body = null
+      }
 
-      await require('./http/kernel')(req, res, db)
+      await require('./http/kernel')(req, res)
     })
     
     return

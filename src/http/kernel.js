@@ -11,7 +11,7 @@ const ROUTES = [
     }
 ]
 
-module.exports = async function validarUrl(req, res, db) {
+module.exports = async function validarUrl(req, res) {
     const route = ROUTES.find(route => route.method === req.method && route.pattern.test(req.url))
 
     if (!route) {
@@ -26,7 +26,6 @@ module.exports = async function validarUrl(req, res, db) {
             req,
             cliente_id: req.url.match(/\d+/)[0]
         }, 
-        res,
-        db
+        res
     )
 }

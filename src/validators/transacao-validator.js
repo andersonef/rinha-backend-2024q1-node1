@@ -28,11 +28,14 @@ module.exports = async function transacaoValidator(cliente_id, valor, tipo) {
         }
     }
     
-    if (Math.abs(saldo_cache.limite + saldo_cache.saldo) < valor) {
+    console.log({
+        limite: saldo_cache.limite,
+        saldo: saldo_cache.saldo,
+        valor
+    })
+    if (valor - saldo_cache.saldo > saldo_cache.limite) {
         throw 'Saldo insuficiente'
     }
-    saldo_cache.saldo -= valor
-    await redis.set(`saldo:${cliente_id}`, JSON.stringify(saldo_cache))
 
     return {
         limite: saldo_cache.limite,

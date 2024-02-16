@@ -11,11 +11,13 @@ const redis = new Redis({
 module.exports = async function postTransacoes(req, res) {
     const { cliente_id } = req
     const { valor, tipo, descricao } = req.req.body
+    let client = null
 
     try {
-        const { limite, saldo } = await validar_transacao(cliente_id, valor, tipo)
+        const { limite, saldo } = await validar_transacao(cliente_id, parseInt(valor), tipo)
 
-        await db.query(
+        client = await db.pool.connect()
+        await client.query(
             'INSERT INTO transacoes (id_cliente, valor, tipo, descricao) VALUES ($1, $2, $3, $4);',
             [
                 cliente_id,
@@ -24,9 +26,10 @@ module.exports = async function postTransacoes(req, res) {
                 descricao
             ]
         )
+
         let saldo_cache = await redis.get(`saldo:${cliente_id}`)
         saldo_cache = JSON.parse(saldo_cache)
-        saldo_cache.saldo = saldo + (tipo === 'c' ? valor : -valor)
+        saldo_cache.saldo = saldo + parseInt((tipo === 'c' ? valor : -valor))
         await redis.set(`saldo:${cliente_id}`, JSON.stringify(saldo_cache))
 
         res.end(JSON.stringify({
@@ -38,5 +41,7 @@ module.exports = async function postTransacoes(req, res) {
         res.writeHead(422, { 'Content-Type': 'application/json' })
         res.end(JSON.stringify({ erro: 'Saldo insuficiente' }))
         return
+    } finally {
+        client.release()
     }
 }

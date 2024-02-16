@@ -7,4 +7,4 @@ RUN apk add --update nodejs npm
 RUN rm -rf node_modules
 RUN npm install
 EXPOSE 9999
-CMD ["npm", "start"]
+CMD ["npm", "run", "start"]

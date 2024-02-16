@@ -7,13 +7,16 @@ services:
     #image: andersonef/rinha-node-2024:latest
     build: .
     hostname: api01
+    volumes:
+      - .:/var/app
     environment:
+      - SERVER_ID=1
       - DB_HOST=db
       - DB_PORT=5432
       - DB_NAME=rinha
       - DB_USER=postgres
       - DB_PASSWORD=postgres
-      - MAX_CONNECTION_POOL=20
+      - MAX_CONNECTION_POOL=50
       - REDIS_HOST=redis
       - REDIS_PORT=6379
     
@@ -35,13 +38,16 @@ services:
     # Essa sintaxe reusa o que foi declarado em 'api01'.
     <<: *api 
     hostname: api02
+    volumes:
+      - .:/var/app
     environment:
+      - SERVER_ID=2
       - DB_HOST=db
       - DB_PORT=5432
       - DB_NAME=rinha
       - DB_USER=postgres
       - DB_PASSWORD=postgres
-      - MAX_CONNECTION_POOL=20
+      - MAX_CONNECTION_POOL=50
       - REDIS_HOST=redis
       - REDIS_PORT=6379
     ports:
@@ -49,6 +55,8 @@ services:
 
   db:
     image: postgres:latest
+    ports:
+      - "5432:5432"
     environment:
       - POSTGRES_DB=rinha
       - POSTGRES_USER=postgres

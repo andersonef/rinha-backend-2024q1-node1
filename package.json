@@ -17,6 +17,6 @@
   },
   "scripts": {
     "start": "node src/main.js",
-    "dev": "nodemon src/main.js"
+    "dev": "node node_modules/.bin/nodemon src/main.js"
   }
 }

@@ -1,7 +1,7 @@
 const http = require('node:http')
 const startDb = require('./start-db')
+setTimeout(() => startDb(), 3000)
 
-startDb()
 http.createServer(async (req, res) => {
   try {
     req.raw_body = ''
@@ -10,12 +10,23 @@ http.createServer(async (req, res) => {
     })
     req.on('end', async () => {
       try {
-        req.body = JSON.parse(req.raw_body || '{}')
-      } catch (e) {
-        req.body = null
-      }
+        try {
+          req.body = JSON.parse(req.raw_body || '{}')
+        } catch (e) {
+          req.body = null
+        }
 
-      await require('./http/kernel')(req, res)
+        await require('./http/kernel')(req, res)
+      } catch (e) {
+        console.log('ERRO GERAL', { erro: e })
+      } finally {
+        console.log({
+          statusCode: res.statusCode,
+          url: req.url,
+          method: req.method,
+          body: req.body
+        })
+      }
     })
     
     return

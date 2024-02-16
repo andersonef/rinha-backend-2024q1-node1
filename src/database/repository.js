@@ -8,14 +8,19 @@ const config = {
     password: process.env.DB_PASSWORD || 'postgres',
     max: process.env.MAX_CONNECTION_POOL || 20,
     idleTimeoutMillis: process.env.DB_MAX_IDLE_TIMEOUT || 30000,
-    connectionTimeoutMillis: process.env.DB_TIMEOUT || 2000,
+    connectionTimeoutMillis: process.env.DB_TIMEOUT || 4000,
 }
 
 const pool = new Pool(config);
 
 module.exports = {
     pool,
-    query (sql, params) {
-        return pool.query(sql, params)
+    async query (sql, params) {
+        const client = await pool.connect()
+        try {
+            return client.query(sql, params)
+        } finally {
+            client.release()
+        }
     }
 }

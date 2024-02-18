@@ -20,11 +20,10 @@ pool.once('error', (err) => {
 module.exports = {
     pool,
     async query (sql, params) {
-        const client = await pool.connect()
         try {
-            return client.query(sql, params)
+            return this.pool.query(sql, params)
         } finally {
-            client.release()
+            //client.release()
         }
     }
 }

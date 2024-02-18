@@ -10,8 +10,12 @@ const config = {
     idleTimeoutMillis: process.env.DB_MAX_IDLE_TIMEOUT || 30000,
     connectionTimeoutMillis: process.env.DB_TIMEOUT || 4000,
 }
+console.log(config)
 
 const pool = new Pool(config);
+pool.once('error', (err) => {
+    console.error('ERRO DB', err)
+})
 
 module.exports = {
     pool,

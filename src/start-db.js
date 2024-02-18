@@ -10,5 +10,6 @@ module.exports = async function startDb() {
     await db.query('CREATE TABLE IF NOT EXISTS transacoes (id SERIAL PRIMARY KEY, id_cliente INTEGER, valor INTEGER, tipo TEXT, descricao VARCHAR, realizada_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP, FOREIGN KEY(id_cliente) REFERENCES clientes(id));')
     await db.query('DELETE FROM transacoes;')
     await db.query('create or replace function fn_upd_clientes() returns TRIGGER as $$ begin update clientes set saldo = saldo + (case when new.tipo = \'c\' then new.valor else new.valor * -1.0 end) where id = new.id_cliente; return null; end; $$ language plpgsql;')
-    await db.query('CREATE OR REPLACE TRIGGER upd_clientes AFTER INSERT on transacoes FOR EACH ROW EXECUTE FUNCTION fn_upd_clientes();')
+    await db.query('DROP TRIGGER IF EXISTS upd_clientes ON transacoes;')
+    await db.query('CREATE TRIGGER upd_clientes AFTER INSERT on transacoes FOR EACH ROW EXECUTE FUNCTION fn_upd_clientes();')
 }

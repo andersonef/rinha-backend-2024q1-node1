@@ -30,7 +30,7 @@ module.exports = async function transacaoValidator(cliente_id, valor, tipo) {
     
     console.log({
         limite: saldo_cache.limite,
-        saldo: saldo_cache.saldo,
+        saldo: saldo_cache.saldo - valor,
         valor
     })
     if (valor - saldo_cache.saldo > saldo_cache.limite) {
@@ -39,6 +39,6 @@ module.exports = async function transacaoValidator(cliente_id, valor, tipo) {
 
     return {
         limite: saldo_cache.limite,
-        saldo: saldo_cache.saldo
+        saldo: saldo_cache.saldo - valor
     }
 }

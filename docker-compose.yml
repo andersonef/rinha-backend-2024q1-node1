@@ -31,8 +31,8 @@ services:
     deploy:
       resources:
         limits:
-          cpus: "0.6"
-          memory: "270MB"
+          cpus: "0.4"
+          memory: "60MB"
 
   api02:
     # Essa sintaxe reusa o que foi declarado em 'api01'.
@@ -55,25 +55,28 @@ services:
 
   db:
     image: postgres:latest
+    command: postgres -c config_file=/etc/postgresql.conf
     ports:
-      - "5432:5432"
+      - "5431:5432"
     environment:
       - POSTGRES_DB=rinha
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=postgres
+    volumes:
+      - ./postgresql.conf:/etc/postgresql.conf
     deploy:
       resources:
         limits:
-          cpus: "0.4"
-          memory: "150MB"
+          cpus: "0.6"
+          memory: "100MB"
 
   redis:
     image: redis:latest
     deploy:
       resources:
         limits:
-          cpus: "0.2"
-          memory: "20MB"
+          cpus: "0.1"
+          memory: "10MB"
  
   nginx:
     image: nginx:latest
@@ -88,8 +91,8 @@ services:
     deploy:
       resources:
         limits:
-          cpus: "0.17"
-          memory: "200MB"
+          cpus: "0.1"
+          memory: "310MB"
 
 # O uso do modo `bridge` deve ser adequado à carga que será usada no teste.
 # A edição anterior se beneficiou do modo host pois o volume de requisições

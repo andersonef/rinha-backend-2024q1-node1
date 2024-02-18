@@ -1,7 +1,8 @@
 const db = require('../../../database/repository')
 
 module.exports = async function getExtrato(req, res) {
-    const { cliente_id } = req
+
+    const cliente_id = req.params.id
     const client = await db.pool.connect()
     try {
         const rsaldo = await client.query(
@@ -17,7 +18,7 @@ module.exports = async function getExtrato(req, res) {
         }
 
         const rultimas_transacoes = await client.query(
-            'select * from transacoes where id_cliente = $1 ORDER BY id DESC LIMIT 10;',
+            'select valor, tipo, descricao, realizada_em from transacoes where id_cliente = $1 ORDER BY id DESC LIMIT 10;',
             [cliente_id]
         )
         const ultimas_transacoes = rultimas_transacoes.rows

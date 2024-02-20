@@ -1,40 +1,17 @@
-const http = require('node:http')
-const startDb = require('./start-db')
-setTimeout(() => startDb(), 3000)
+const express = require('express')
+const app = express()
 
-http.createServer(async (req, res) => {
-  try {
-    req.raw_body = ''
-    req.on('data', (chunk) => {
-      req.raw_body += chunk.toString()
-    })
-    req.on('end', async () => {
-      try {
-        try {
-          req.body = JSON.parse(req.raw_body || '{}')
-        } catch (e) {
-          req.body = null
-        }
+const getExtrato = require('./http/controllers/cliente/get-extrato')
+const postTransacoes = require('./http/controllers/cliente/post-transacoes')
 
-        await require('./http/kernel')(req, res)
-      } catch (e) {
-        console.log('ERRO GERAL', { erro: e })
-      } finally {
-        console.log({
-          statusCode: res.statusCode,
-          url: req.url,
-          method: req.method,
-          body: req.body
-        })
-      }
-    })
-    
-    return
-  } catch (e) {
-    console.log(e)
-    if (!res.statusCode) {
-      res.writeHead(500, { 'Content-Type': 'application/json' })
-    }
-    res.end()
-  }
-}).listen(9999, '0.0.0.0')
+app.get('/clientes/:id/extrato', async (req, res) => {
+  getExtrato(req, res)
+})
+
+app.post('/clientes/:id/transacoes', express.json(), async (req, res) => {
+  postTransacoes(req, res)
+})
+
+app.listen(9999, async () => {
+  console.log('Server is running on port 9999')
+})

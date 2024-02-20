@@ -27,12 +27,12 @@ services:
       - "8081:9999"
     depends_on:
       - db
-      - redis
+#      - redis
     deploy:
       resources:
         limits:
-          cpus: "0.6"
-          memory: "270MB"
+          cpus: "0.4"
+          memory: "50MB"
 
   api02:
     # Essa sintaxe reusa o que foi declarado em 'api01'.
@@ -55,25 +55,29 @@ services:
 
   db:
     image: postgres:latest
+#    command: postgres -c config_file=/etc/postgresql.conf
     ports:
-      - "5432:5432"
+      - "5431:5432"
     environment:
       - POSTGRES_DB=rinha
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=postgres
+    volumes:
+      - ./postgresql.conf:/etc/postgresql.conf
+      - ./postgres.initdb.sql:/docker-entrypoint-initdb.d/init.sql
     deploy:
       resources:
         limits:
-          cpus: "0.4"
-          memory: "150MB"
+          cpus: "0.5"
+          memory: "250MB"
 
-  redis:
-    image: redis:latest
-    deploy:
-      resources:
-        limits:
-          cpus: "0.2"
-          memory: "20MB"
+#  redis:
+#    image: redis:latest
+#    deploy:
+#      resources:
+#        limits:
+#          cpus: "0.1"
+#          memory: "300MB"
  
   nginx:
     image: nginx:latest
@@ -88,7 +92,7 @@ services:
     deploy:
       resources:
         limits:
-          cpus: "0.17"
+          cpus: "0.2"
           memory: "200MB"
 
 # O uso do modo `bridge` deve ser adequado à carga que será usada no teste.

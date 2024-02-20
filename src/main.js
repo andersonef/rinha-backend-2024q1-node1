@@ -1,4 +1,3 @@
-const startDb = require('./database/start-db')
 const express = require('express')
 const app = express()
 
@@ -14,6 +13,5 @@ app.post('/clientes/:id/transacoes', express.json(), async (req, res) => {
 })
 
 app.listen(9999, async () => {
-  await startDb()
   console.log('Server is running on port 9999')
 })

@@ -16,7 +16,7 @@ services:
       - DB_NAME=rinha
       - DB_USER=postgres
       - DB_PASSWORD=postgres
-      - MAX_CONNECTION_POOL=145
+      - MAX_CONNECTION_POOL=50
       - REDIS_HOST=redis
       - REDIS_PORT=6379
     
@@ -32,7 +32,7 @@ services:
       resources:
         limits:
           cpus: "0.4"
-          memory: "60MB"
+          memory: "50MB"
 
   api02:
     # Essa sintaxe reusa o que foi declarado em 'api01'.
@@ -47,7 +47,7 @@ services:
       - DB_NAME=rinha
       - DB_USER=postgres
       - DB_PASSWORD=postgres
-      - MAX_CONNECTION_POOL=145
+      - MAX_CONNECTION_POOL=50
       - REDIS_HOST=redis
       - REDIS_PORT=6379
     ports:
@@ -68,8 +68,8 @@ services:
     deploy:
       resources:
         limits:
-          cpus: "0.6"
-          memory: "200MB"
+          cpus: "0.5"
+          memory: "250MB"
 
 #  redis:
 #    image: redis:latest
@@ -77,7 +77,7 @@ services:
 #      resources:
 #        limits:
 #          cpus: "0.1"
-#          memory: "30MB"
+#          memory: "300MB"
  
   nginx:
     image: nginx:latest
@@ -92,8 +92,8 @@ services:
     deploy:
       resources:
         limits:
-          cpus: "0.1"
-          memory: "310MB"
+          cpus: "0.2"
+          memory: "200MB"
 
 # O uso do modo `bridge` deve ser adequado à carga que será usada no teste.
 # A edição anterior se beneficiou do modo host pois o volume de requisições

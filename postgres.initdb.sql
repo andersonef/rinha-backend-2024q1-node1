@@ -12,33 +12,91 @@ ALTER SYSTEM SET huge_pages = off;
 ALTER SYSTEM SET min_wal_size = "1GB";
 ALTER SYSTEM SET max_wal_size = "4GB";*/
 
-CREATE UNLOGGED TABLE IF NOT EXISTS clientes (id INTEGER PRIMARY KEY, limite INTEGER, saldo INTEGER DEFAULT 0);
+CREATE UNLOGGED TABLE IF NOT EXISTS clientes (
+    id INTEGER PRIMARY KEY,
+    limite INTEGER
+);
 INSERT INTO clientes (id, limite) VALUES (1, 100000), (2, 80000), (3, 1000000), (4, 10000000), (5, 500000) ON CONFLICT DO NOTHING;
-CREATE UNLOGGED TABLE IF NOT EXISTS transacoes (id SERIAL PRIMARY KEY, id_cliente INTEGER, valor INTEGER, tipo TEXT, descricao VARCHAR, realizada_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP, uid TEXT UNIQUE, FOREIGN KEY(id_cliente) REFERENCES clientes(id));
-DELETE FROM transacoes;
 
-CREATE OR REPLACE FUNCTION fn_add_transacao(p_id_cliente integer, p_valor INTEGER, p_tipo text, p_descricao text, p_uid text) 
+
+CREATE UNLOGGED TABLE IF NOT EXISTS transacoes_1 (
+    id SERIAL PRIMARY KEY,
+    id_cliente INTEGER default 1,
+    limite INTEGER default 100000,
+    valor INTEGER,
+    tipo TEXT,
+    descricao VARCHAR,
+    realizada_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    saldo INTEGER check (saldo >= -limite),
+    id_transacao_anterior INTEGER,
+    FOREIGN KEY(id_transacao_anterior) REFERENCES transacoes_1(id)
+);
+CREATE UNLOGGED TABLE IF NOT EXISTS transacoes_2 (
+    id SERIAL PRIMARY KEY,
+    id_cliente INTEGER default 2,
+    limite INTEGER default 80000,
+    valor INTEGER,
+    tipo TEXT,
+    descricao VARCHAR,
+    realizada_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    saldo INTEGER check (saldo >= -limite),
+    id_transacao_anterior INTEGER,
+    FOREIGN KEY(id_transacao_anterior) REFERENCES transacoes_2(id)
+);
+CREATE UNLOGGED TABLE IF NOT EXISTS transacoes_3 (
+    id SERIAL PRIMARY KEY,
+    id_cliente INTEGER default 3,
+    limite INTEGER default 1000000,
+    valor INTEGER,
+    tipo TEXT,
+    descricao VARCHAR,
+    realizada_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    saldo INTEGER check (saldo >= -limite),
+    id_transacao_anterior INTEGER,
+    FOREIGN KEY(id_transacao_anterior) REFERENCES transacoes_3(id)
+);
+CREATE UNLOGGED TABLE IF NOT EXISTS transacoes_4 (
+    id SERIAL PRIMARY KEY,
+    id_cliente INTEGER default 4,
+    limite INTEGER default 10000000,
+    valor INTEGER,
+    tipo TEXT,
+    descricao VARCHAR,
+    realizada_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    saldo INTEGER check (saldo >= -limite),
+    id_transacao_anterior INTEGER,
+    FOREIGN KEY(id_transacao_anterior) REFERENCES transacoes_4(id)
+);
+CREATE UNLOGGED TABLE IF NOT EXISTS transacoes_5 (
+    id SERIAL PRIMARY KEY,
+    id_cliente INTEGER default 5,
+    limite INTEGER default 500000,
+    valor INTEGER,
+    tipo TEXT,
+    descricao VARCHAR,
+    realizada_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    saldo INTEGER check (saldo >= -limite),
+    id_transacao_anterior INTEGER,
+    FOREIGN KEY(id_transacao_anterior) REFERENCES transacoes_5(id)
+);
+
+
+CREATE OR REPLACE FUNCTION fn_add_transacao(p_id_cliente integer, p_valor INTEGER, p_tipo text, p_descricao text) 
 RETURNS TABLE (status text, saldo INTEGER, limite integer) AS 
 $$
 DECLARE
-   v_status text;
-   v_saldo INTEGER;
-   v_limite integer;
-   v_novo_saldo INTEGER;
+    v_inserted_id INTEGER;
+    v_query text;
+    v_query_result text;
 BEGIN
-    SELECT c.saldo, c.limite INTO v_saldo, v_limite FROM clientes c WHERE c.id = p_id_cliente;
-	v_novo_saldo := v_saldo + (CASE WHEN p_tipo = 'c' THEN p_valor ELSE -p_valor end);
-    IF v_novo_saldo >= -v_limite THEN
-        INSERT INTO transacoes (id_cliente, valor, tipo, descricao, uid) VALUES (p_id_cliente, p_valor, p_tipo, p_descricao, p_uid);
-        
-        UPDATE clientes SET saldo = v_novo_saldo WHERE id = p_id_cliente;
 
-        v_status := 'success';
-    ELSE
-        v_status := 'error';
-    END IF;
+    v_query := 'INSERT INTO transacoes_' || p_id_cliente || ' (id_cliente, valor, tipo, descricao, saldo, id_transacao_anterior) VALUES (' || p_id_cliente || ', ' || p_valor || ', ''' || p_tipo || ''', ''' || p_descricao || ''', lag(saldo, 1) over (order by realizada_em desc) + (case when ''' || p_tipo || ''' = ''c'' then ''' || p_valor || ''' else ''-' || p_valor || ''', lag(id, 1) over(order by realizada_em desc))) RETURNING id into v_inserted_id;';
+    EXECUTE v_query;
 
-    RETURN QUERY SELECT v_status, (case when v_status = 'success' then v_novo_saldo else v_saldo end), v_limite;
+    v_query_result := 'select ''success'', saldo, limite FROM transacoes_' || p_id_cliente || ' WHERE id = ' || v_inserted_id;
+
+    RETURN QUERY EXECUTE v_query_result;
+    --RETURN QUERY SELECT 'success', saldo, limite FROM transacoes_' || p_id_cliente || ' WHERE id = v_inserted_id;
 END;
 $$
 LANGUAGE plpgsql;

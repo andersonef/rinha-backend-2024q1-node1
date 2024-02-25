@@ -11,8 +11,8 @@ module.exports = async function getExtrato(req, res) {
         }
         
         const rultimas_transacoes = await db.query(
-            'select saldo, valor, limite, tipo, descricao, realizada_em from clientes c left join transacoes t on t.id_cliente = c.id where c.id = $1 ORDER BY t.id DESC LIMIT 10;',
-            [cliente_id]
+            //'select saldo, valor, limite, tipo, descricao, realizada_em from clientes c left join transacoes_' + cliente_id + ' t on t.id_cliente = c.id where c.id = $1 ORDER BY t.id DESC LIMIT 10;',
+            'select saldo, valor, limite, tipo, descricao, realizada_em from transacoes_' + cliente_id + ' order by id desc limit 10;'
         )
         const ultimas_transacoes = rultimas_transacoes.rows
         
@@ -24,7 +24,7 @@ module.exports = async function getExtrato(req, res) {
                 data_extrato: new Date().toISOString(),
                 limite: ultimas_transacoes[0].limite
             },
-            ultimas_transacoes: ultimas_transacoes.filter(t => t.realizada_em != null).map((row) => {
+            ultimas_transacoes: ultimas_transacoes.filter(t => t.exibir).map((row) => {
                 return {
                     valor: row.valor,
                     tipo: row.tipo,

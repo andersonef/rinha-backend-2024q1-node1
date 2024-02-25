@@ -28,6 +28,7 @@ CREATE UNLOGGED TABLE IF NOT EXISTS transacoes_1 (
     descricao VARCHAR,
     realizada_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     saldo INTEGER check (saldo >= -limite),
+    exibir BOOLEAN default true,
     id_transacao_anterior INTEGER,
     FOREIGN KEY(id_transacao_anterior) REFERENCES transacoes_1(id)
 );
@@ -40,6 +41,7 @@ CREATE UNLOGGED TABLE IF NOT EXISTS transacoes_2 (
     descricao VARCHAR,
     realizada_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     saldo INTEGER check (saldo >= -limite),
+    exibir BOOLEAN default true,
     id_transacao_anterior INTEGER,
     FOREIGN KEY(id_transacao_anterior) REFERENCES transacoes_2(id)
 );
@@ -52,6 +54,7 @@ CREATE UNLOGGED TABLE IF NOT EXISTS transacoes_3 (
     descricao VARCHAR,
     realizada_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     saldo INTEGER check (saldo >= -limite),
+    exibir BOOLEAN default true,
     id_transacao_anterior INTEGER,
     FOREIGN KEY(id_transacao_anterior) REFERENCES transacoes_3(id)
 );
@@ -64,6 +67,7 @@ CREATE UNLOGGED TABLE IF NOT EXISTS transacoes_4 (
     descricao VARCHAR,
     realizada_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     saldo INTEGER check (saldo >= -limite),
+    exibir BOOLEAN default true,
     id_transacao_anterior INTEGER,
     FOREIGN KEY(id_transacao_anterior) REFERENCES transacoes_4(id)
 );
@@ -76,27 +80,54 @@ CREATE UNLOGGED TABLE IF NOT EXISTS transacoes_5 (
     descricao VARCHAR,
     realizada_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     saldo INTEGER check (saldo >= -limite),
+    exibir BOOLEAN default true,
     id_transacao_anterior INTEGER,
     FOREIGN KEY(id_transacao_anterior) REFERENCES transacoes_5(id)
 );
 
+INSERT INTO transacoes_1
+(id_cliente, limite, valor, tipo, descricao, realizada_em, saldo, exibir, id_transacao_anterior)
+VALUES(1, 100000, 0, 'c', 'inicial', now(), 0, false, NULL);
 
-CREATE OR REPLACE FUNCTION fn_add_transacao(p_id_cliente integer, p_valor INTEGER, p_tipo text, p_descricao text) 
-RETURNS TABLE (status text, saldo INTEGER, limite integer) AS 
-$$
+INSERT INTO transacoes_2
+(id_cliente, limite, valor, tipo, descricao, realizada_em, saldo, exibir, id_transacao_anterior)
+VALUES(2, 80000, 0, 'c', 'inicial', now(), 0, false, NULL);
+
+INSERT INTO transacoes_3
+(id_cliente, limite, valor, tipo, descricao, realizada_em, saldo, exibir, id_transacao_anterior)
+VALUES(3, 1000000, 0, 'c', 'inicial', now(), 0, false, NULL);
+
+INSERT INTO transacoes_4
+(id_cliente, limite, valor, tipo, descricao, realizada_em, saldo, exibir, id_transacao_anterior)
+VALUES(4, 10000000, 0, 'c', 'inicial', now(), 0, false, NULL);
+
+INSERT INTO transacoes_5
+(id_cliente, limite, valor, tipo, descricao, realizada_em, saldo, exibir, id_transacao_anterior)
+VALUES(5, 500000, 0, 'c', 'inicial', now(), 0, false, NULL);
+
+
+
+CREATE OR REPLACE FUNCTION public.fn_add_transacao(p_id_cliente integer, p_valor integer, p_tipo text, p_descricao text)
+ RETURNS TABLE(status text, saldo integer, limite integer)
+ LANGUAGE plpgsql
+AS $function$
 DECLARE
-    v_inserted_id INTEGER;
-    v_query text;
-    v_query_result text;
+   v_inserted_id INTEGER;
+   v_query text;
+   v_query_result text;
+   v_novo_saldo integer;
 BEGIN
 
-    v_query := 'INSERT INTO transacoes_' || p_id_cliente || ' (id_cliente, valor, tipo, descricao, saldo, id_transacao_anterior) VALUES (' || p_id_cliente || ', ' || p_valor || ', ''' || p_tipo || ''', ''' || p_descricao || ''', lag(saldo, 1) over (order by realizada_em desc) + (case when ''' || p_tipo || ''' = ''c'' then ''' || p_valor || ''' else ''-' || p_valor || ''', lag(id, 1) over(order by realizada_em desc))) RETURNING id into v_inserted_id;';
+    v_query := 'INSERT INTO transacoes_' || p_id_cliente || ' (id_cliente, valor, tipo, descricao, saldo, id_transacao_anterior) SELECT ' || p_id_cliente::text || ', ' || p_valor::text || ', ''' || p_tipo || ''', ''' || p_descricao || ''', (case when ''' || p_tipo || ''' = ''c'' then saldo + ' || p_valor || ' else saldo - ' || p_valor || ' end), id from transacoes_' || p_id_cliente::text || ' order by realizada_em desc limit 1 for update;';
+	raise notice 'query final: %', v_query;
     EXECUTE v_query;
 
-    v_query_result := 'select ''success'', saldo, limite FROM transacoes_' || p_id_cliente || ' WHERE id = ' || v_inserted_id;
+    v_query_result := 'select ''success'', saldo, limite FROM transacoes_' || p_id_cliente || ' order by realizada_em desc limit 1;';
+   
+   RAISE NOTICE 'Consulta dinâmica: %', v_query_result;
 
     RETURN QUERY EXECUTE v_query_result;
     --RETURN QUERY SELECT 'success', saldo, limite FROM transacoes_' || p_id_cliente || ' WHERE id = v_inserted_id;
 END;
-$$
-LANGUAGE plpgsql;
+$function$
+;

@@ -1,5 +1,5 @@
 const db = require('../../../repositories/database')
-const crypto = require('crypto')
+//const crypto = require('crypto')
 //const valida_transacao = require('../../../validators/transacao-validator')
 //const redis_repository = require('../../../repositories/redis')
 
@@ -48,13 +48,12 @@ module.exports = async function postTransacoes(req, res) {
         */
         
         const result = await db.query(
-            'select * from fn_add_transacao($1, $2, $3, $4, $5);',
+            'select * from fn_add_transacao($1, $2, $3, $4);',
             [
-                cliente_id,
-                valor,
+                parseInt(cliente_id),
+                parseInt(valor),
                 tipo,
-                descricao,
-                crypto.randomUUID().toString()
+                descricao
             ]
         )
         const { status, limite, saldo } = result.rows[0]

@@ -7,6 +7,7 @@ module.exports = async function getExtrato(req, res) {
     try {
         if (cliente_id < 1 || cliente_id > 5) {
             res.writeHead(404, { 'Content-Type': 'application/json' })
+            res.end()
             return
         }
         

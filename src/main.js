@@ -15,3 +15,6 @@ app.post('/clientes/:id/transacoes', express.json(), async (req, res) => {
 app.listen(9999, async () => {
   console.log('Server is running on port 9999')
 })
+app.on('timeout', () => {
+  console.log('Server timeout')
+})

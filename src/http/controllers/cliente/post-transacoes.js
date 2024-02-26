@@ -1,4 +1,5 @@
 const db = require('../../../repositories/database')
+const crypto = require('crypto')
 
 module.exports = async function postTransacoes(req, res) {
     const cliente_id = req.params.id
@@ -23,12 +24,13 @@ module.exports = async function postTransacoes(req, res) {
         }
         
         const result = await db.query(
-            'select * from fn_add_transacao($1, $2, $3, $4);',
+            'select * from fn_add_transacao($1, $2, $3, $4, $5);',
             [
                 cliente_id,
                 valor,
                 tipo,
-                descricao
+                descricao,
+                crypto.randomUUID().toString()
             ]
         )
         const { status, limite, saldo } = result.rows[0]
@@ -36,8 +38,7 @@ module.exports = async function postTransacoes(req, res) {
         if (status == 'error') {
             throw 'Saldo insuficiente'
         }
-
-
+        
         res.end(JSON.stringify({
             limite,
             saldo

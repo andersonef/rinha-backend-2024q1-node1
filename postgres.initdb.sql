@@ -14,10 +14,10 @@ ALTER SYSTEM SET max_wal_size = "4GB";*/
 
 CREATE UNLOGGED TABLE IF NOT EXISTS clientes (id INTEGER PRIMARY KEY, limite INTEGER, saldo INTEGER DEFAULT 0);
 INSERT INTO clientes (id, limite) VALUES (1, 100000), (2, 80000), (3, 1000000), (4, 10000000), (5, 500000) ON CONFLICT DO NOTHING;
-CREATE UNLOGGED TABLE IF NOT EXISTS transacoes (id SERIAL PRIMARY KEY, id_cliente INTEGER, valor INTEGER, tipo TEXT, descricao VARCHAR, realizada_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP, uid text unique, FOREIGN KEY(id_cliente) REFERENCES clientes(id));
+CREATE UNLOGGED TABLE IF NOT EXISTS transacoes (id SERIAL PRIMARY KEY, id_cliente INTEGER, valor INTEGER, tipo TEXT, descricao VARCHAR, realizada_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP, FOREIGN KEY(id_cliente) REFERENCES clientes(id));
 DELETE FROM transacoes;
 
-CREATE OR REPLACE FUNCTION fn_add_transacao(p_id_cliente integer, p_valor INTEGER, p_tipo text, p_descricao text, p_uid text) 
+CREATE OR REPLACE FUNCTION fn_add_transacao(p_id_cliente integer, p_valor INTEGER, p_tipo text, p_descricao text) 
 RETURNS TABLE (status text, saldo INTEGER, limite integer) AS 
 $$
 DECLARE
@@ -29,7 +29,7 @@ BEGIN
     SELECT c.saldo, c.limite INTO v_saldo, v_limite FROM clientes c WHERE c.id = p_id_cliente for update;
 	v_novo_saldo := v_saldo + (CASE WHEN p_tipo = 'c' THEN p_valor ELSE -p_valor end);
     IF v_novo_saldo >= -v_limite THEN
-        INSERT INTO transacoes (id_cliente, valor, tipo, descricao, uid) VALUES (p_id_cliente, p_valor, p_tipo, p_descricao, p_uid);
+        INSERT INTO transacoes (id_cliente, valor, tipo, descricao) VALUES (p_id_cliente, p_valor, p_tipo, p_descricao);
         
         UPDATE clientes SET saldo = v_novo_saldo WHERE id = p_id_cliente;
 

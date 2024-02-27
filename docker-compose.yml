@@ -66,16 +66,16 @@ services:
     deploy:
       resources:
         limits:
-          cpus: "0.6"
+          cpus: "0.5"
           memory: "180MB"
 
-#  redis:
-#    image: redis:latest
-#    deploy:
-#      resources:
-#        limits:
-#          cpus: "0.1"
-#          memory: "300MB"
+  redis:
+    image: redis:latest
+    deploy:
+      resources:
+        limits:
+          cpus: "0.1"
+          memory: "10MB"
  
   nginx:
     image: nginx:latest

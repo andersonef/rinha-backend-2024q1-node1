@@ -1,5 +1,6 @@
 const db = require('../../../repositories/database')
 const crypto = require('crypto')
+const redis = require('../../../repositories/redis')
 
 module.exports = async function postTransacoes(req, res) {
     const cliente_id = req.params.id
@@ -22,6 +23,16 @@ module.exports = async function postTransacoes(req, res) {
         if (!descricao || descricao.length > 10) {
             throw 'Descrição inválida'
         }
+        const is_debito = tipo == 'd'
+        if (is_debito) {
+            const [ saldo_cache, limite_cache ] = await redis.redis.mget(
+                `saldo:${cliente_id}`,
+                `limite:${cliente_id}`
+            )
+            if (saldo_cache - valor < -limite_cache) {
+                throw 'Saldo insuficiente'
+            }
+        }
         
         const result = await db.query(
             'select * from fn_add_transacao($1, $2, $3, $4, $5);',
@@ -38,7 +49,8 @@ module.exports = async function postTransacoes(req, res) {
         if (status == 'error') {
             throw 'Saldo insuficiente'
         }
-        
+        redis.redis.set(`saldo:${cliente_id}`, saldo)
+
         res.end(JSON.stringify({
             limite,
             saldo

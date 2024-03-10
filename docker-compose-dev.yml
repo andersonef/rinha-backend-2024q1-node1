@@ -2,8 +2,10 @@ version: "3.5"
 
 services:
   api01: &api
-    image: andersonef/rinha-node-2024:latest
+    build: .
     hostname: api01
+    volumes:
+      - .:/var/app
     environment:
       - SERVER_ID=1
       - DB_HOST=db
@@ -25,8 +27,11 @@ services:
           memory: "65MB"
 
   api02:
+    # Essa sintaxe reusa o que foi declarado em 'api01'.
     <<: *api 
     hostname: api02
+    volumes:
+      - .:/var/app
     environment:
       - SERVER_ID=2
       - DB_HOST=db
@@ -81,6 +86,12 @@ services:
           cpus: "0.2"
           memory: "230MB"
 
+# O uso do modo `bridge` deve ser adequado à carga que será usada no teste.
+# A edição anterior se beneficiou do modo host pois o volume de requisições
+# era relativamente alto e a virtualização da rede se tornou um gargalo, mas
+# este modo é mais complexo de ser configurado. Fique à vontade para usar o
+# modo que quiser desde que não conflite com portas trivialmente usadas em um
+# SO.
 networks:
   default:
     driver: bridge

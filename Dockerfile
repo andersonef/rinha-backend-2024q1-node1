@@ -1,7 +1,7 @@
 FROM node:21.6.1-alpine3.18
 WORKDIR /var/app
 
-COPY . .
+COPY . /var/app
 
 RUN apk add --update nodejs npm
 RUN rm -rf node_modules
